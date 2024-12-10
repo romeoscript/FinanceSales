@@ -1,5 +1,13 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Shield, Globe, CheckCircle, Clock, ChevronRight } from 'lucide-react';
+import ConsultationForm from './RequestConsultation';
+
+import estate from '../assets/pngs/estate.jpg';
+import finance from '../assets/pngs/finance.jpg';
+import ship from '../assets/pngs/ship.jpg';
+import people from '../assets/pngs/people.jpg';
+import shop from '../assets/pngs/shop.jpg';
+import transact from '../assets/pngs/transact.jpg';
 
 
 
@@ -180,7 +188,7 @@ export default function SalesPage() {
                                     whileHover={{ y: -5 }}
                                 >
                                     <img
-                                        src={`https://placehold.co/400x200`}
+                                        src={client.img}
                                         alt={client.type}
                                         className="w-full h-48 object-cover rounded-lg mb-6"
                                     />
@@ -262,9 +270,7 @@ export default function SalesPage() {
                             className="flex flex-col sm:flex-row gap-6 justify-center"
                             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                         >
-                            <button className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold shadow-lg hover:shadow-xl">
-                                Request a Consultation
-                            </button>
+                            <ConsultationForm />
                             <button className="px-8 py-4 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-lg font-semibold">
                                 Contact Us Now
                             </button>
@@ -303,8 +309,12 @@ const services = [
     }
 ];
 
+
 const clientTypes = [
+
+
     {
+        img: ship,
         type: "Importers and Exporters",
         points: [
             "Facilitating quick and secure payment methods for international trade",
@@ -312,6 +322,7 @@ const clientTypes = [
         ]
     },
     {
+        img:shop,
         type: "Small and Medium Enterprises",
         points: [
             "Growing businesses looking to simplify cross-border transactions",
@@ -319,6 +330,7 @@ const clientTypes = [
         ]
     },
     {
+        img:people,
         type: "Corporate Enterprises",
         points: [
             "Simplifying high-volume, multi-currency transactions",
@@ -326,6 +338,7 @@ const clientTypes = [
         ]
     },
     {
+        img:finance,
         type: "Financial Institutions",
         points: [
             "Utilizing advanced services like GPI and DTC transfers",
@@ -333,6 +346,7 @@ const clientTypes = [
         ]
     },
     {
+        img:transact,
         type: "E-commerce Businesses",
         points: [
             "Handling multiple payment channels and international orders efficiently",
@@ -340,6 +354,7 @@ const clientTypes = [
         ]
     },
     {
+        img:estate,
         type: "Real Estate and Investment Firms",
         points: [
             "Processing large transactions securely, such as property acquisitions",
