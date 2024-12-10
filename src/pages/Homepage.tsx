@@ -6,6 +6,7 @@ const Homepage = () => {
   return (
     <div>
       <Hero />
+      
       <SalesPage />
      
     </div>
