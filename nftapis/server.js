@@ -21,7 +21,7 @@ const swaggerOptions = {
       { url: "https://crime-report-api.onrender.com" }
     ]
   },
-  apis: ["./controllers/*.js"] // Point to controllers for documentation
+  apis: ["./controllers/*.js"]
 };
 
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
@@ -45,16 +45,6 @@ app.use(express.json());
 
 // Static folder for uploaded files
 app.use('/uploads', express.static('uploads'));
-
-// Rate limiting (optional but recommended)
-import rateLimit from 'express-rate-limit';
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-
-app.use(limiter);
 
 // Report Routes
 app.post("/api/reports", createReport);
