@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Camera, MapPin } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Camera, MapPin, Check } from 'lucide-react';
+import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { ReportType } from '../types';
 
 const reportTypes = [
-  { type: 'theft', label: 'Theft', description: 'Report stolen property or burglary' },
-  { type: 'vandalism', label: 'Vandalism', description: 'Report damage to property' },
-  { type: 'assault', label: 'Assault', description: 'Report physical altercations' },
-  { type: 'suspicious_activity', label: 'Suspicious Activity', description: 'Report unusual behavior' },
-  { type: 'other', label: 'Other', description: 'Other types of incidents' }
+  { type: 'THEFT', label: 'Theft', description: 'Report stolen property or burglary' },
+  { type: 'VANDALISM', label: 'Vandalism', description: 'Report damage to property' },
+  { type: 'ASSAULT', label: 'Assault', description: 'Report physical altercations' },
+  { type: 'SUSPICIOUS_ACTIVITY', label: 'Suspicious Activity', description: 'Report unusual behavior' },
+  { type: 'OTHER', label: 'Other', description: 'Other types of incidents' }
 ];
 
 export const ReportModal: React.FC = () => {
@@ -23,6 +23,15 @@ export const ReportModal: React.FC = () => {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [location, setLocation] = useState('');
   const [detailedAddress, setDetailedAddress] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [trackingInfo, setTrackingInfo] = useState<{
+    trackingNumber: string;
+    status: string;
+    message: string;
+  } | null>(null);
 
   const handleLocationAccess = async () => {
     setIsLoadingLocation(true);
@@ -36,37 +45,19 @@ export const ReportModal: React.FC = () => {
         navigator.geolocation.getCurrentPosition(resolve, reject);
       });
 
-      const { latitude, longitude } = position.coords;
+      const { latitude: lat, longitude: lng } = position.coords;
+      setLatitude(lat);
+      setLongitude(lng);
       
       const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${'AIzaSyBQcXOQ98ZheEx_5BJ5R2_n_JhBtN-ScW8'}`
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${'AIzaSyBQcXOQ98ZheEx_5BJ5R2_n_JhBtN-ScW8'}`
       );
       const data = await response.json();
 
       if (data.status === "OK" && data.results.length > 0) {
         const result = data.results[0];
         setLocation(result.formatted_address);
-
-        // Extract detailed components for additional display
-        const addressComponents = result.address_components;
-        const details = {
-          street: '',
-          area: '',
-          city: '',
-          state: '',
-          landmark: ''
-        };
-
-        addressComponents.forEach((component: any) => {
-          const type = component.types[0];
-          if (type === 'route') details.street = component.long_name;
-          if (type === 'sublocality_level_1') details.area = component.long_name;
-          if (type === 'locality') details.city = component.long_name;
-          if (type === 'administrative_area_level_1') details.state = component.long_name;
-        });
-
-        const detailedText = `${details.street}${details.area ? `, ${details.area}` : ''}${details.city ? `, ${details.city}` : ''}${details.state ? `, ${details.state}` : ''}`;
-        setDetailedAddress(detailedText);
+        setDetailedAddress(result.formatted_address);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -83,18 +74,79 @@ export const ReportModal: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    const reportData = {
-      type: reportType,
-      description,
-      location,
-      detailedAddress,
-      files,
-      timestamp: new Date()
-    };
-    
-    console.log('Submitting report:', reportData);
-    // Add your API call here
+    try {
+      setIsSubmitting(true);
+
+      if (!reportType || !description || !location || !latitude || !longitude) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('type', reportType);
+      formData.append('description', description);
+      formData.append('location', location);
+      formData.append('latitude', latitude.toString());
+      formData.append('longitude', longitude.toString());
+      formData.append('detailedAddress', detailedAddress);
+
+      // Append each file to the formData
+      files.forEach((file) => {
+        formData.append('evidence', file);
+      });
+
+      const response = await fetch('http://localhost:5001/api/reports', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit report');
+      }
+
+      setSubmitSuccess(true);
+      setTrackingInfo({
+        trackingNumber: data.data.trackingNumber,
+        status: data.data.status,
+        message: data.data.message
+      });
+
+    } catch (error) {
+      console.error('Error submitting report:', error);
+      alert('Failed to submit report. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (submitSuccess && trackingInfo) {
+    return (
+      <DialogContent className="sm:max-w-[600px]">
+        <div className="p-6 text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-green-100 mx-auto flex items-center justify-center">
+            <Check className="w-6 h-6 text-green-600" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900">Report Submitted Successfully</h2>
+          <div className="space-y-2">
+            <p className="text-gray-600">Your tracking number is:</p>
+            <p className="text-lg font-bold text-blue-600">{trackingInfo.trackingNumber}</p>
+            <p className="text-sm text-gray-500">
+              Status: {trackingInfo.status}
+            </p>
+          </div>
+          <Alert>
+            <AlertDescription>
+              {trackingInfo.message}
+              <br />
+              Please save your tracking number for future reference.
+            </AlertDescription>
+          </Alert>
+        </div>
+      </DialogContent>
+    );
+  }
 
   return (
     <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -110,7 +162,7 @@ export const ReportModal: React.FC = () => {
             <button
               key={type}
               onClick={() => {
-                setReportType(type);
+                setReportType(type as ReportType);
                 setStep(2);
               }}
               className={`p-4 rounded-lg border-2 text-left hover:border-blue-500 transition-all
@@ -125,18 +177,19 @@ export const ReportModal: React.FC = () => {
         <div className="space-y-6 p-4">
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Description</label>
+              <label className="block text-sm font-medium mb-2">Description *</label>
               <Textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Please provide detailed description of the incident..."
                 className="h-32"
+                required
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <label className="block text-sm font-medium">Location</label>
+                <label className="block text-sm font-medium">Location *</label>
                 <Button
                   onClick={handleLocationAccess}
                   variant="outline"
@@ -154,6 +207,7 @@ export const ReportModal: React.FC = () => {
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="Enter the location of the incident"
                   className="w-full"
+                  required
                 />
                 {detailedAddress && (
                   <p className="text-sm text-gray-600 mt-1">
@@ -195,13 +249,15 @@ export const ReportModal: React.FC = () => {
               <Button
                 variant="outline"
                 onClick={() => setStep(1)}
+                disabled={isSubmitting}
               >
                 Back
               </Button>
               <Button
                 onClick={handleSubmit}
+                disabled={isSubmitting}
               >
-                Submit Report
+                {isSubmitting ? 'Submitting...' : 'Submit Report'}
               </Button>
             </div>
           </div>
