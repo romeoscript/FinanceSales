@@ -19,7 +19,7 @@
     "node": "18.x"
   },
   "dependencies": {
-    "@prisma/client": "^5.4.2",
+    "@prisma/client": "^6.2.1",
     "@supabase/supabase-js": "^2.47.16",
     "axios": "^1.5.1",
     "bcrypt": "^5.1.1",
@@ -31,7 +31,6 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.6",
-    "prisma": "^5.4.2",
     "stripe": "^13.11.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.0"
@@ -39,6 +38,7 @@
   "devDependencies": {
     "@types/node": "^20.8.4",
     "nodemon": "^3.1.9",
+    "prisma": "^6.2.1",
     "ts-node": "^10.9.1",
     "typescript": "^5.2.2"
   }

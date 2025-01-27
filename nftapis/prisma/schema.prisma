@@ -7,72 +7,55 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  password  String
-  username  String    @unique
-  createdAt DateTime  @default(now())
-  updateAt  DateTime  @updatedAt
-  NFTs      Nftpost[]
+model Report {
+  id              Int           @id @default(autoincrement())
+  trackingNumber  String        @unique
+  type            ReportType
+  description     String        @db.Text
+  location        String
+  latitude        Float
+  longitude       Float
+  detailedAddress String        @db.Text
+  contactEmail    String?      
+  contactPhone    String?     
+  status          ReportStatus  @default(SUBMITTED)
+  evidence        Evidence[]
+  statusUpdates   StatusUpdate[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([latitude, longitude])
 }
 
-model Nftpost {
-  id          Int      @id @default(autoincrement())
-  name        String
-  userId      Int
-  image       String?
-  description String
-  blockchain  String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model Evidence {
+  id        Int      @id @default(autoincrement())
+  reportId  Int
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fileUrl   String
+  fileType  String
+  createdAt DateTime @default(now())
 }
 
-model mechanic {
-  id          Int      @id @default(autoincrement())
-  shopName    String   
-  ownerName   String
-  phone       String
-  address     String
-  city        String
-  state       String
-  latitude    Float
-  longitude   Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+model StatusUpdate {
+  id        Int          @id @default(autoincrement())
+  reportId  Int
+  report    Report       @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  status    ReportStatus
+  comment   String?      @db.Text
+  createdAt DateTime     @default(now())
 }
 
-
-model WalletUser {
-  id          Int       @id @default(autoincrement())
-  address     String    @unique  // Solana wallet address
-  purchases   Purchase[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+enum ReportType {
+  THEFT
+  VANDALISM
+  ASSAULT
+  SUSPICIOUS_ACTIVITY
+  OTHER
 }
 
-model Purchase {
-  id          Int        @id @default(autoincrement())
-  title       String
-  price       Float
-  description String
-  category    String
-  image       String?
-  address     String     
-  wallet      WalletUser @relation(fields: [address], references: [address]) 
-  txHash      String?    
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
-
-model Product {
- id          Int      @id @default(autoincrement())
- title       String
- price       Float
- description String   @db.Text
- category    String
- image       String?
- createdAt   DateTime @default(now())
- updatedAt   DateTime @updatedAt
+enum ReportStatus {
+  SUBMITTED
+  PROCESSING
+  INVESTIGATING
+  RESOLVED
 }
