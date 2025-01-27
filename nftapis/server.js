@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-import { createReport, getReport, getNearbyReports, updateReportStatus } from "./controllers/report.controller.js";
+import { createReport, getReport, getNearbyReports, updateReportStatus, getAllReports } from "./controllers/report.controller.js";
 
 const app = express();
 const PORT = 5001;
@@ -50,6 +50,7 @@ app.use('/uploads', express.static('uploads'));
 app.post("/api/reports", createReport);
 app.get("/api/reports/:trackingNumber", getReport);
 app.get("/api/reports/nearby", getNearbyReports);
+app.get("/api/reports", getAllReports);
 app.patch("/api/reports/:trackingNumber/status", updateReportStatus);
 
 // Error handling middleware

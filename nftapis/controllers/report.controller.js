@@ -318,3 +318,88 @@ export async function updateReportStatus(req, res) {
     });
   }
 }
+
+
+
+/**
+ * @swagger
+ * /api/reports:
+ *   get:
+ *     tags:
+ *       - Reports
+ *     description: Get all reports
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [SUBMITTED, PROCESSING, INVESTIGATING, RESOLVED]
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [THEFT, VANDALISM, ASSAULT, SUSPICIOUS_ACTIVITY, OTHER]
+ */
+export async function getAllReports(req, res) {
+    try {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const skip = (page - 1) * limit;
+  
+      // Build filter conditions
+      const whereCondition = {};
+      if (req.query.status) {
+        whereCondition.status = req.query.status;
+      }
+      if (req.query.type) {
+        whereCondition.type = req.query.type;
+      }
+  
+      // Fetch total count for pagination
+      const totalReports = await db.report.count({ where: whereCondition });
+  
+      // Fetch paginated reports
+      const reports = await db.report.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+        include: {
+          evidence: true,
+          statusUpdates: {
+            orderBy: { createdAt: 'desc' },
+            take: 1
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+  
+      return res.status(200).json({
+        success: true,
+        data: reports,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(totalReports / limit),
+          totalReports,
+          limit
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+      return res.status(500).json({
+        success: false,
+        message: "Failed to fetch reports"
+      });
+    }
+  }
