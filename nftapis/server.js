@@ -53,9 +53,9 @@ app.get("/api/reports/:trackingNumber", getReport);
 app.get("/api/reports/nearby", getNearbyReports);
 app.get("/api/reports", getAllReports);
 app.patch("/api/reports/:trackingNumber/status", updateReportStatus);
-app.post('/emergency', createEmergency);
-app.patch('/emergency/:id/status', updateEmergencyStatus);
-app.get('/emergency', getAllEmergencies);
+app.post('/api/emergency', createEmergency);
+app.patch('/api/emergency/:id/status', updateEmergencyStatus);
+app.get('/api/emergency', getAllEmergencies);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

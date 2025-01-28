@@ -1,21 +1,12 @@
-/**
- * @swagger
- * /api/emergency:
- *   post:
- *     tags:
- *       - Emergency
- *     description: Create a new emergency report
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - description
- *             properties:
- *               description:
- *                 type: string
- */
+import dotenv from "dotenv";
+import { PrismaClient } from "@prisma/client";
+import cloudinary from "../lib/cloudinary.js";
+import upload from "../middleware/upload.js";
+import fs from "fs";
+
+const db = new PrismaClient();
+dotenv.config();
+
 export async function createEmergency(req, res) {
     try {
       const { description } = req.body;
