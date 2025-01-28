@@ -10,31 +10,94 @@ import { StatusTracker } from '../components/StatusTracker';
 import { ReportModal } from '../components/ReportModal';
 
 // Emergency Modal Component
-const EmergencyModal: React.FC = () => (
-  <DialogContent className="sm:max-w-[500px]">
-    <DialogHeader>
-      <DialogTitle className="text-2xl font-bold text-red-600">
-        Emergency Report
-      </DialogTitle>
-    </DialogHeader>
-    <div className="p-4 space-y-4">
-      <Alert className="bg-red-50 border-red-200">
-        <AlertDescription className="text-red-800">
-          This is for immediate emergency situations only. If you're in immediate danger, call 911 directly.
-        </AlertDescription>
-      </Alert>
-      <div className="space-y-4">
-        <Textarea
-          placeholder="Describe the emergency situation..."
-          className="h-32"
-        />
-        <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
-          Submit Emergency Report
-        </Button>
+// Modified EmergencyModal Component
+const EmergencyModal: React.FC = () => {
+  const [description, setDescription] = React.useState('');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [success, setSuccess] = React.useState(false);
+
+  const handleSubmit = async () => {
+    if (!description.trim()) {
+      setError('Please describe the emergency situation');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const response = await fetch('http://localhost:5001/api/emergency', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ description }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to submit emergency report');
+      }
+
+      setSuccess(true);
+      setDescription('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to submit emergency report');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <DialogContent className="sm:max-w-[500px]">
+      <DialogHeader>
+        <DialogTitle className="text-2xl font-bold text-red-600">
+          Emergency Report
+        </DialogTitle>
+      </DialogHeader>
+      <div className="p-4 space-y-4">
+        <Alert className="bg-red-50 border-red-200">
+          <AlertDescription className="text-red-800">
+            This is for immediate emergency situations only. If you're in immediate danger, call 911 directly.
+          </AlertDescription>
+        </Alert>
+
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {success && (
+          <Alert className="bg-green-50 border-green-200">
+            <AlertDescription className="text-green-800">
+              Emergency report submitted successfully. Authorities have been notified.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        <div className="space-y-4">
+          <Textarea
+            placeholder="Describe the emergency situation..."
+            className="h-32"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            disabled={isSubmitting || success}
+          />
+          <Button 
+            className="w-full bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleSubmit}
+            disabled={isSubmitting || success}
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit Emergency Report'}
+          </Button>
+        </div>
       </div>
-    </div>
-  </DialogContent>
-);
+    </DialogContent>
+  );
+};
 
 const Homepage: React.FC = () => {
   const features: Feature[] = [

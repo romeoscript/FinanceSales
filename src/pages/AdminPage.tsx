@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ReportStatus } from '../types';
+import { EmergencyDashboard } from '@/components/EmergencyDashboard';
 
 interface Evidence {
     id: number;
@@ -35,7 +36,7 @@ export const AdminReportsPage: React.FC = () => {
     const [isLocating, setIsLocating] = useState(false);
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [nearbyRadius, setNearbyRadius] = useState(5); // Default 5 km
+    const [nearbyRadius, setNearbyRadius] = useState(5); 
     const [currentLocation, setCurrentLocation] = useState<{
         latitude: number;
         longitude: number;
@@ -168,6 +169,8 @@ export const AdminReportsPage: React.FC = () => {
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
                         <h1 className="text-3xl font-bold text-white">Admin Reports Dashboard</h1>
                     </div>
+                    
+                    <EmergencyDashboard />
 
                     {/* Location and Nearby Reports Section */}
                     <div className="p-6 border-b">
